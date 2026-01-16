@@ -1,0 +1,72 @@
+body {
+    background-color: #3c4043;
+}
+
+.buttoncol {
+    background-color: #2e3133;
+    width: 190px;
+    height: 90px;
+    border-radius: 20px;
+    color: white;
+    font-family:fantasy;
+    font-size: 30px;
+    transition: 0.2s;
+}
+
+.buttoncol:hover {
+    background-color: #b2bdc4;
+    color: black;
+    transition: 0.2s;
+}
+
+.padd {
+    padding-top: 85px;
+    display: flex;
+    gap: 10px;
+}
+
+.pics {
+    display: flex;
+    gap: 10px;
+}
+
+.pics > img {
+    width: 150px;
+    height: 150px;
+}
+
+.gamescos {
+    background-color: #2e3133;
+    width: 190px;
+    height: 90px;
+    border-radius: 20px;
+    color: white;
+    font-family:fantasy;
+    font-size: 20px;
+    display: block;
+    margin: auto;
+}
+
+.gamescos:hover {
+    background-color: #2e3133;
+    width: 190px;
+    height: 90px;
+    border-radius: 20px;
+    color: white;
+    font-family:fantasy;
+    font-size: 20px;
+    display: block;
+    margin: auto;
+}
+
+.gamescos:hover {
+    background-color: #b2bdc4;
+    color: black;
+    transition: 0.2s;
+}
+
+img {
+    display: block;
+    margin: auto;
+    padding-top: 15px;
+}

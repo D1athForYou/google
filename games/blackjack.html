@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        .buttoncol {
+            background-color: #2e3133;
+            width: 190px;
+            height: 90px;
+            border-radius: 20px;
+            color: white;
+            font-family: fantasy;
+            font-size: 30px;
+            transition: 0.2s;
+            margin-left: auto;
+        }
+
+        .buttoncol:hover {
+            background-color: #b2bdc4;
+            color: black;
+            transition: 0.2s;
+        }
+
+        .card {
+            width: 80px;
+            height: 112px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 6px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #1e3a5f 25%, #2d5a87 25%, #2d5a87 50%, #1e3a5f 50%, #1e3a5f 75%, #2d5a87 75%);
+            background-size: 20px 20px;
+            border: 3px solid #ffd700;
+        }
+
+        .card-red {
+            color: #dc2626;
+        }
+
+        .card-black {
+            color: #1f2937;
+        }
+
+        @keyframes dealCard {
+            from {
+                transform: translateX(100px) rotate(10deg);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0) rotate(0);
+                opacity: 1;
+            }
+        }
+
+        .deal-animation {
+            animation: dealCard 0.3s ease-out;
+        }
+    </style>
+</head>
+<a href="../gamesco.html"><button class="buttoncol">Vissza</button></a>
+
+    <body
+        class="min-h-screen bg-gradient-to-br from-green-800 via-green-700 to-green-900 flex flex-col items-center justify-center p-4">
+        <div class="text-center mb-6">
+            <h1 class="text-5xl font-bold text-yellow-400 drop-shadow-lg mb-2">♠ Blackjack ♥</h1>
+            <p class="text-green-200">Try to get as close to 21 as possible without going over!</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="flex gap-8 mb-6 text-white">
+            <div class="bg-black/30 px-4 py-2 rounded-lg">
+                <span class="text-green-300">Wins:</span> <span id="wins" class="font-bold">0</span>
+            </div>
+            <div class="bg-black/30 px-4 py-2 rounded-lg">
+                <span class="text-red-300">Losses:</span> <span id="losses" class="font-bold">0</span>
+            </div>
+            <div class="bg-black/30 px-4 py-2 rounded-lg">
+                <span class="text-yellow-300">Pushes:</span> <span id="pushes" class="font-bold">0</span>
+            </div>
+        </div>
+
+        <!-- Game Area -->
+        <div
+            class="bg-green-900/50 backdrop-blur rounded-3xl p-8 shadow-2xl border-4 border-yellow-600 max-w-2xl w-full">
+
+            <!-- Dealer Section -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-xl font-semibold text-white">Dealer</h2>
+                    <span id="dealer-score" class="bg-black/50 text-white px-3 py-1 rounded-full text-sm">Score:
+                        ?</span>
+                </div>
+                <div id="dealer-cards" class="flex gap-3 min-h-[112px] flex-wrap">
+                    <!-- Dealer cards go here -->
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="border-t-2 border-dashed border-yellow-600/50 my-6"></div>
+
+            <!-- Player Section -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-xl font-semibold text-white">Your Hand</h2>
+                    <span id="player-score" class="bg-black/50 text-white px-3 py-1 rounded-full text-sm">Score:
+                        0</span>
+                </div>
+                <div id="player-cards" class="flex gap-3 min-h-[112px] flex-wrap">
+                    <!-- Player cards go here -->
+                </div>
+            </div>
+
+            <!-- Message -->
+            <div id="message" class="text-center text-2xl font-bold mb-6 h-8 text-white"></div>
+
+            <!-- Buttons -->
+            <div class="flex justify-center gap-4">
+                <button id="hit-btn" onclick="hit()"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+                    Hit
+                </button>
+                <button id="stand-btn" onclick="stand()"
+                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+                    Stand
+                </button>
+                <button id="newgame-btn" onclick="startGame()"
+                    class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-full transition transform hover:scale-105">
+                    New Game
+                </button>
+            </div>
+        </div>
+
+        <p class="text-green-300 mt-6 text-sm">Aces count as 11 or 1 • Dealer stands on 17</p>
+
+        <script>
+            const suits = ['♠', '♥', '♦', '♣'];
+            const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+            let deck = [];
+            let playerHand = [];
+            let dealerHand = [];
+            let gameOver = false;
+            let stats = { wins: 0, losses: 0, pushes: 0 };
+
+            function createDeck() {
+                deck = [];
+                for (let suit of suits) {
+                    for (let value of values) {
+                        deck.push({ suit, value });
+                    }
+                }
+                // Shuffle
+                for (let i = deck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [deck[i], deck[j]] = [deck[j], deck[i]];
+                }
+            }
+
+            function getCardValue(card) {
+                if (card.value === 'A') return 11;
+                if (['K', 'Q', 'J'].includes(card.value)) return 10;
+                return parseInt(card.value);
+            }
+
+            function calculateScore(hand) {
+                let score = 0;
+                let aces = 0;
+
+                for (let card of hand) {
+                    score += getCardValue(card);
+                    if (card.value === 'A') aces++;
+                }
+
+                while (score > 21 && aces > 0) {
+                    score -= 10;
+                    aces--;
+                }
+
+                return score;
+            }
+
+            function createCardElement(card, hidden = false) {
+                const div = document.createElement('div');
+                div.className = 'card deal-animation';
+
+                if (hidden) {
+                    div.classList.add('card-back');
+                } else {
+                    const isRed = card.suit === '♥' || card.suit === '♦';
+                    div.classList.add('bg-white', isRed ? 'card-red' : 'card-black');
+                    div.innerHTML = `
+                    <div class="text-left text-lg">${card.value}${card.suit}</div>
+                    <div class="text-center text-3xl">${card.suit}</div>
+                    <div class="text-right text-lg rotate-180">${card.value}${card.suit}</div>
+                `;
+                }
+
+                return div;
+            }
+
+            function renderCards() {
+                const dealerCardsEl = document.getElementById('dealer-cards');
+                const playerCardsEl = document.getElementById('player-cards');
+
+                dealerCardsEl.innerHTML = '';
+                playerCardsEl.innerHTML = '';
+
+                dealerHand.forEach((card, index) => {
+                    const hidden = index === 1 && !gameOver;
+                    dealerCardsEl.appendChild(createCardElement(card, hidden));
+                });
+
+                playerHand.forEach(card => {
+                    playerCardsEl.appendChild(createCardElement(card));
+                });
+
+                // Update scores
+                const playerScore = calculateScore(playerHand);
+                document.getElementById('player-score').textContent = `Score: ${playerScore}`;
+
+                if (gameOver) {
+                    const dealerScore = calculateScore(dealerHand);
+                    document.getElementById('dealer-score').textContent = `Score: ${dealerScore}`;
+                } else {
+                    const visibleCard = dealerHand[0];
+                    document.getElementById('dealer-score').textContent = `Score: ${getCardValue(visibleCard)} + ?`;
+                }
+            }
+
+            function updateStats() {
+                document.getElementById('wins').textContent = stats.wins;
+                document.getElementById('losses').textContent = stats.losses;
+                document.getElementById('pushes').textContent = stats.pushes;
+            }
+
+            function setMessage(msg, color = 'white') {
+                const msgEl = document.getElementById('message');
+                msgEl.textContent = msg;
+                msgEl.className = `text-center text-2xl font-bold mb-6 h-8 text-${color}-400`;
+            }
+
+            function setButtonsEnabled(enabled) {
+                document.getElementById('hit-btn').disabled = !enabled;
+                document.getElementById('stand-btn').disabled = !enabled;
+            }
+
+            function startGame() {
+                createDeck();
+                playerHand = [deck.pop(), deck.pop()];
+                dealerHand = [deck.pop(), deck.pop()];
+                gameOver = false;
+                setMessage('');
+                setButtonsEnabled(true);
+                renderCards();
+
+                // Check for blackjack
+                if (calculateScore(playerHand) === 21) {
+                    stand();
+                }
+            }
+
+            function hit() {
+                if (gameOver) return;
+
+                playerHand.push(deck.pop());
+                renderCards();
+
+                const score = calculateScore(playerHand);
+                if (score > 21) {
+                    endGame('Bust! You lose.', 'red');
+                    stats.losses++;
+                    updateStats();
+                } else if (score === 21) {
+                    stand();
+                }
+            }
+
+            function stand() {
+                if (gameOver) return;
+
+                gameOver = true;
+                setButtonsEnabled(false);
+
+                // Dealer draws
+                while (calculateScore(dealerHand) < 17) {
+                    dealerHand.push(deck.pop());
+                }
+
+                renderCards();
+
+                const playerScore = calculateScore(playerHand);
+                const dealerScore = calculateScore(dealerHand);
+
+                setTimeout(() => {
+                    if (dealerScore > 21) {
+                        setMessage('Dealer busts! You win! 🎉', 'green');
+                        stats.wins++;
+                    } else if (playerScore > dealerScore) {
+                        setMessage('You win! 🎉', 'green');
+                        stats.wins++;
+                    } else if (dealerScore > playerScore) {
+                        setMessage('Dealer wins!', 'red');
+                        stats.losses++;
+                    } else {
+                        setMessage('Push! It\'s a tie.', 'yellow');
+                        stats.pushes++;
+                    }
+                    updateStats();
+                }, 300);
+            }
+
+            function endGame(message, color) {
+                gameOver = true;
+                setButtonsEnabled(false);
+                setMessage(message, color);
+                renderCards();
+            }
+
+            // Start the game on load
+            startGame();
+        </script>
+    </body>
+
+</html>
